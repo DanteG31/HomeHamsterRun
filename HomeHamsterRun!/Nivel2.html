@@ -36,6 +36,8 @@
 		var isWorldReady = [false, false, false, false, false, false, false];
 		var nPlayers = 1;
 		var players = [];
+		var enemies = [];
+		var difMultiplier = 1;
 
 		$(document).ready(function () {
 
@@ -293,6 +295,8 @@
 				player.isFalling = false;
 				player.isJumping = false;
 				player.isWalking = false;
+				player.isAlive = true;
+				player.hp = 100;
 				player.fall = 0;
 				player.dir = 0;
 				player.visible = true;
@@ -346,6 +350,9 @@
 						gravityAff.push(player2);
 						player2.isFalling = false;
 						player2.isJumping = false;
+						player2.isWalking = false;
+						player2.isAlive = true;
+						player2.hp = 100;
 						player2.poses = [];
 						player2.frames = 0;
 						player2.fall = 0;
@@ -426,12 +433,28 @@
 				pelusa.position.y = 0;
 				pelusa.scale.set(0.4, 0.4, 0.4);
 				pelusa.rotation.y = THREE.Math.degToRad(90);
+				pelusa.mobile = true;
+				pelusa.box = new THREE.Box3();
+				pelusa.box.setFromObject(pelusa);
+				pelusa.speed = 2 * difMultiplier;
+				pelusa.maxmov = 8;
+				pelusa.mov = 0;
+				pelusa.dmg = 20 * difMultiplier;
+				enemies.push(pelusa);
 
 				//PELUSA DERECHA
 				var pelusaDer = pelusa.clone();
 				pelusaDer.position.x = 15;
 				pelusaDer.position.y = 0;
 				pelusaDer.rotation.y = THREE.Math.degToRad(-90);
+				pelusaDer.mobile = true;
+				pelusaDer.box = new THREE.Box3();
+				pelusaDer.box.setFromObject(pelusa);
+				pelusaDer.speed = 2 * difMultiplier;
+				pelusaDer.maxmov = 8;
+				pelusaDer.mov = 0;
+				pelusaDer.dmg = 20 * difMultiplier;
+				enemies.push(pelusaDer);
 
 				//PELUSA ARRIBA
 				var pelusaArriba = pelusa.clone();
@@ -439,6 +462,14 @@
 				pelusaArriba.position.y = 25;
 				pelusaArriba.rotation.y = THREE.Math.degToRad(0);
 				pelusaArriba.rotation.x = THREE.Math.degToRad(30);
+				pelusaArriba.mobile = true;
+				pelusaArriba.box = new THREE.Box3();
+				pelusaArriba.box.setFromObject(pelusaArriba);
+				pelusaArriba.speed = 2 * difMultiplier;
+				pelusaArriba.maxmov = 3;
+				pelusaArriba.mov = 0;
+				pelusaArriba.dmg = 20 * difMultiplier;
+				enemies.push(pelusaArriba);
 
 				//PELUSA ARRIBA IZQUIERDA
 				var pelusaAIzq = pelusa.clone();
@@ -446,22 +477,44 @@
 				pelusaAIzq.position.y = 10;
 				pelusaAIzq.rotation.y = THREE.Math.degToRad(90);
 				pelusaAIzq.rotation.x = THREE.Math.degToRad(40);
+				pelusaAIzq.mobile = true;
+				pelusaAIzq.box = new THREE.Box3();
+				pelusaAIzq.box.setFromObject(pelusaAIzq);
+				pelusa.box = new THREE.Box3();
+				pelusa.box.setFromObject(pelusa);
+				pelusaAIzq.speed = 2 * difMultiplier;
+				pelusaAIzq.maxmov = 8;
+				pelusaAIzq.mov = 0;
+				pelusaAIzq.dmg = 20 * difMultiplier;
+				enemies.push(pelusaAIzq);
 
 				//PELUSA ARRIBA DERECHA
 				var pelusaADer = pelusa.clone();
 				pelusaADer.position.x = 15;
 				pelusaADer.position.y = 10;
 				pelusaADer.rotation.y = THREE.Math.degToRad(-90);
-
+				pelusaADer.mobile = true;
+				pelusaADer.box = new THREE.Box3();
+				pelusaADer.box.setFromObject(pelusaADer);
+				pelusaADer.speed = 2 * difMultiplier;
+				pelusaADer.maxmov = 8;
+				pelusaADer.mov = 0;
+				pelusaADer.dmg = 20 * difMultiplier;
+				enemies.push(pelusaADer);
 
 				//PELUSA AARIBA ARRIBA IZQUIERDA
 				var pelusaAIzq2 = pelusa.clone();
 				pelusaAIzq2.position.x = -15;
 				pelusaAIzq2.position.y = 15;
 				pelusaAIzq2.rotation.y = THREE.Math.degToRad(90);
-
-
-
+				pelusaAIzq2.mobile = true;
+				pelusaAIzq2.box = new THREE.Box3();
+				pelusaAIzq2.box.setFromObject(pelusaAIzq2);
+				pelusaAIzq2.speed = 2 * difMultiplier;
+				pelusaAIzq2.maxmov = 8;
+				pelusaAIzq2.mov = 0;
+				pelusaAIzq2.dmg = 20 * difMultiplier;
+				enemies.push(pelusaAIzq2);
 
 				scene.add(pelusa);
 				scene.add(pelusaDer);
@@ -618,32 +671,38 @@
 					}
 				}
 				if(Pausa == false){
-				if (keys["A"]) {
-					player.rotation.y = THREE.Math.degToRad(-90);
-					for (var i = 0; i < CollisionsBox.length; i++) {
-						if ((player.box.min.y > CollisionsBox[i].box.min.y && player.box.min.y < CollisionsBox[i].box.max.y) || (player.box.max.y > CollisionsBox[i].box.min.y && player.box.max.y < CollisionsBox[i].box.max.y)) {
-							if (Math.abs(player.box.min.x - CollisionsBox[i].box.max.x) <= 0.2) {
-								forward = 0;
-								break;
+					if (keys["A"]) {
+						player.rotation.y = THREE.Math.degToRad(-90);
+						for (var i = 0; i < CollisionsBox.length; i++) {
+							if ((player.box.min.y > CollisionsBox[i].box.min.y && player.box.min.y < CollisionsBox[i].box.max.y) || (player.box.max.y > CollisionsBox[i].box.min.y && player.box.max.y < CollisionsBox[i].box.max.y)) {
+								if (Math.abs(player.box.min.x - CollisionsBox[i].box.max.x) <= 0.2) {
+									forward = 0;
+									break;
+								}
+								else {
+									forward = velocidad;
+									player.isWalking = true;
+								}
 							}
 							else {
 								forward = velocidad;
 								player.isWalking = true;
 							}
 						}
-						else {
-							forward = velocidad;
-							player.isWalking = true;
-						}
-					}
 
-				} else if (keys["D"]) {
-					player.rotation.y = THREE.Math.degToRad(90);
-					for (var i = 0; i < CollisionsBox.length; i++) {
-						if ((player.box.min.y > CollisionsBox[i].box.min.y && player.box.min.y < CollisionsBox[i].box.max.y) || (player.box.max.y > CollisionsBox[i].box.min.y && player.box.max.y < CollisionsBox[i].box.max.y)) {
-							if (Math.abs(player.box.max.x - CollisionsBox[i].box.min.x) <= 0.2) {
-								forward = 0;
-								break;
+					} else if (keys["D"]) {
+						player.rotation.y = THREE.Math.degToRad(90);
+						for (var i = 0; i < CollisionsBox.length; i++) {
+							if ((player.box.min.y > CollisionsBox[i].box.min.y && player.box.min.y < CollisionsBox[i].box.max.y) || (player.box.max.y > CollisionsBox[i].box.min.y && player.box.max.y < CollisionsBox[i].box.max.y)) {
+								if (Math.abs(player.box.max.x - CollisionsBox[i].box.min.x) <= 0.2) {
+									forward = 0;
+									break;
+								}
+								else {
+									forward = velocidad;
+									player.isWalking = true;
+								}
+
 							}
 							else {
 								forward = velocidad;
@@ -651,314 +710,327 @@
 							}
 
 						}
-						else {
-							forward = velocidad;
-							player.isWalking = true;
-						}
-
 					}
-				}
 
-				if (!keys["A"] && !keys["D"] && player.isJumping == false && player.isFalling == false) {
-					player.isWalking = false;
-					player.frames = 0;
-					player.visible = true;
-					players[0].poses[0].visible = false;
-					players[0].poses[1].visible = false;
-				}
+					if (!keys["A"] && !keys["D"] && player.isJumping == false && player.isFalling == false) {
+						player.isWalking = false;
+						player.frames = 0;
+						player.visible = true;
+						players[0].poses[0].visible = false;
+						players[0].poses[1].visible = false;
+					}
 
-				if (nPlayers == 2) {
+					if (nPlayers == 2) {
 
-					if (keys["J"]) {
-						player2.rotation.y = THREE.Math.degToRad(-90);
-						for (var i = 0; i < CollisionsBox.length; i++) {
-							if ((player2.box.min.y > CollisionsBox[i].box.min.y && player2.box.min.y < CollisionsBox[i].box.max.y) || (player2.box.max.y > CollisionsBox[i].box.min.y && player2.box.max.y < CollisionsBox[i].box.max.y)) {
-								if (Math.abs(player2.box.min.x - CollisionsBox[i].box.max.x) <= 0.2) {
-									forward2 = 0;
-									break;
+						if (keys["J"]) {
+							player2.rotation.y = THREE.Math.degToRad(-90);
+							for (var i = 0; i < CollisionsBox.length; i++) {
+								if ((player2.box.min.y > CollisionsBox[i].box.min.y && player2.box.min.y < CollisionsBox[i].box.max.y) || (player2.box.max.y > CollisionsBox[i].box.min.y && player2.box.max.y < CollisionsBox[i].box.max.y)) {
+									if (Math.abs(player2.box.min.x - CollisionsBox[i].box.max.x) <= 0.2) {
+										forward2 = 0;
+										break;
+									}
+									else {
+										forward2 = velocidad;
+										player2.isWalking = true;
+									}
 								}
 								else {
 									forward2 = velocidad;
 									player2.isWalking = true;
 								}
 							}
-							else {
-								forward2 = velocidad;
-								player2.isWalking = true;
-							}
-						}
 
-					} else if (keys["L"]) {
-						player2.rotation.y = THREE.Math.degToRad(90);
-						for (var i = 0; i < CollisionsBox.length; i++) {
-							if ((player2.box.min.y > CollisionsBox[i].box.min.y && player2.box.min.y < CollisionsBox[i].box.max.y) || (player2.box.max.y > CollisionsBox[i].box.min.y && player2.box.max.y < CollisionsBox[i].box.max.y)) {
-								if (Math.abs(player2.box.max.x - CollisionsBox[i].box.min.x) <= 0.2) {
-									forward2 = 0;
-									break;
-								}
-								else {
-									forward2 = velocidad;
-									player2.isWalking = true;
-								}
-
-							}
-							else {
-								forward2 = velocidad;
-								player2.isWalking = true;
-							}
-
-						}
-					}
-
-					if (!keys["J"] && !keys["L"] && player2.isJumping == false && player2.isFalling == false) {
-						player2.isWalking = false;
-						player2.frames = 0;
-						player2.visible = true;
-						players[1].poses[0].visible = false;
-						players[1].poses[1].visible = false;
-					}
-				}
-
-				if (gravityAff.length > 0) {
-					for (var i = 0; i < gravityAff.length; i++) {
-						if (gravityAff[i].isFalling == true) {
-							gravityAff[i].position.y -= gravity * deltaTime;
-						}
-					}
-				}
-
-				if (gravityAff.length > 0) {
-					for (var i = 0; i < gravityAff.length; i++) {
-						for (var j = 0; CollisionsBox.length > j; j++) {
-							if ((gravityAff[i].box.min.x < CollisionsBox[j].box.max.x && CollisionsBox[j].box.min.x < gravityAff[i].box.min.x) || (gravityAff[i].box.max.x < CollisionsBox[j].box.max.x && CollisionsBox[j].box.min.x < gravityAff[i].box.max.x)) {
-								if (Math.abs(gravityAff[i].box.min.y - CollisionsBox[j].box.max.y) <= 0.1) {
-									gravityAff[i].position.y = CollisionsBox[j].box.max.y + 0.01;
-									gravityAff[i].fall = 0;
-									gravityAff[i].isFalling = false;
-									gravityAff[i].isJumping = false;
-									gravityAff[i].jump = jumpLength;
-									for (var l = 0; l < gravityAff[i].poses.length; l++) {
-										gravityAff[i].poses[l].visible = false;
+						} else if (keys["L"]) {
+							player2.rotation.y = THREE.Math.degToRad(90);
+							for (var i = 0; i < CollisionsBox.length; i++) {
+								if ((player2.box.min.y > CollisionsBox[i].box.min.y && player2.box.min.y < CollisionsBox[i].box.max.y) || (player2.box.max.y > CollisionsBox[i].box.min.y && player2.box.max.y < CollisionsBox[i].box.max.y)) {
+									if (Math.abs(player2.box.max.x - CollisionsBox[i].box.min.x) <= 0.2) {
+										forward2 = 0;
+										break;
+									}
+									else {
+										forward2 = velocidad;
+										player2.isWalking = true;
 									}
 
-									break;
 								}
 								else {
-									gravityAff[i].isFalling = true;
+									forward2 = velocidad;
+									player2.isWalking = true;
 								}
-							}
 
+							}
+						}
+
+						if (!keys["J"] && !keys["L"] && player2.isJumping == false && player2.isFalling == false) {
+							player2.isWalking = false;
+							player2.frames = 0;
+							player2.visible = true;
+							players[1].poses[0].visible = false;
+							players[1].poses[1].visible = false;
 						}
 					}
-				}
 
-				if (keys["W"] && player.isFalling == false && player.canJump == true) {
-					player.isJumping = true;
-					player.canJump = false;
-				}
-
-				if (!keys["W"]) {
-					player.canJump = true;
-				}
-
-				if (nPlayers == 2) {
-					if (keys["I"] && player2.isFalling == false && player2.canJump == true) {
-						player2.isJumping = true;
-						player2.canJump = false;
+					if (gravityAff.length > 0) {
+						for (var i = 0; i < gravityAff.length; i++) {
+							if (gravityAff[i].isFalling == true) {
+								gravityAff[i].position.y -= gravity * deltaTime;
+							}
+						}
 					}
 
-					if (!keys["I"]) {
-						player2.canJump = true;
+					if (gravityAff.length > 0) {
+						for (var i = 0; i < gravityAff.length; i++) {
+							for (var j = 0; CollisionsBox.length > j; j++) {
+								if ((gravityAff[i].box.min.x < CollisionsBox[j].box.max.x && CollisionsBox[j].box.min.x < gravityAff[i].box.min.x) || (gravityAff[i].box.max.x < CollisionsBox[j].box.max.x && CollisionsBox[j].box.min.x < gravityAff[i].box.max.x)) {
+									if (Math.abs(gravityAff[i].box.min.y - CollisionsBox[j].box.max.y) <= 0.1) {
+										gravityAff[i].position.y = CollisionsBox[j].box.max.y + 0.01;
+										gravityAff[i].fall = 0;
+										gravityAff[i].isFalling = false;
+										gravityAff[i].isJumping = false;
+										gravityAff[i].jump = jumpLength;
+										for (var l = 0; l < gravityAff[i].poses.length; l++) {
+											gravityAff[i].poses[l].visible = false;
+										}
+
+										break;
+									}
+									else {
+										gravityAff[i].isFalling = true;
+									}
+								}
+
+							}
+						}
 					}
-				}
 
-				for (var j = 0; j < players.length; j++) {
-					if (players[j].isJumping == true && players[j].jump > 0) {
-						var check = false;
-						for (var i = 0; i < CollisionsBox.length; i++) {
-							if ((players[j].box.min.x >= CollisionsBox[i].box.min.x && players[j].box.min.x <= CollisionsBox[i].box.max.x) || (players[j].box.max.x >= CollisionsBox[i].box.min.x && players[j].box.max.x <= CollisionsBox[i].box.max.x)) {
-								if (Math.abs(players[j].box.max.y - CollisionsBox[i].box.min.y) <= 0.1) {
-									check = true;
+					if (keys["W"] && player.isFalling == false && player.canJump == true) {
+						player.isJumping = true;
+						player.canJump = false;
+					}
 
-									break;
+					if (!keys["W"]) {
+						player.canJump = true;
+					}
+
+					if (nPlayers == 2) {
+						if (keys["I"] && player2.isFalling == false && player2.canJump == true) {
+							player2.isJumping = true;
+							player2.canJump = false;
+						}
+
+						if (!keys["I"]) {
+							player2.canJump = true;
+						}
+					}
+
+					for (var j = 0; j < players.length; j++) {
+						if (players[j].isJumping == true && players[j].jump > 0) {
+							var check = false;
+							for (var i = 0; i < CollisionsBox.length; i++) {
+								if ((players[j].box.min.x >= CollisionsBox[i].box.min.x && players[j].box.min.x <= CollisionsBox[i].box.max.x) || (players[j].box.max.x >= CollisionsBox[i].box.min.x && players[j].box.max.x <= CollisionsBox[i].box.max.x)) {
+									if (Math.abs(players[j].box.max.y - CollisionsBox[i].box.min.y) <= 0.1) {
+										check = true;
+
+										break;
+									}
+									else {
+										check = false;
+
+									}
+
 								}
 								else {
-									check = false;
-
+									check = false
 								}
 
+							}
+							if (check == true) {
+								players[j].isJumping = false;
+								players[j].jump = jumpLength;
+								players[j].poses[0].visible = false;
+								players[j].poses[1].visible = false;
+								players[j].visible = true;
+								players[j].frames = 0;
 							}
 							else {
-								check = false
+								players[j].position.y += (jumpStrength - (gravity * (jumpLength - players[j].jump) / 20)) * deltaTime;
+								players[j].jump--;
 							}
-
-						}
-						if (check == true) {
-							players[j].isJumping = false;
-							players[j].jump = jumpLength;
-							players[j].poses[0].visible = false;
-							players[j].poses[1].visible = false;
-							players[j].visible = true;
-							players[j].frames = 0;
 						}
 						else {
-							players[j].position.y += (jumpStrength - (gravity * (jumpLength - players[j].jump) / 20)) * deltaTime;
-							players[j].jump--;
+							players[j].isJumping == false;
 						}
 					}
-					else {
-						players[j].isJumping == false;
+
+					//PLATAFORMA CENTRO
+					var PlatCenter = scene.getObjectByName("PlatCentro");
+
+					if (PlatCenter.position.y <= -2) {
+						direccioncubo3 = 1;
 					}
-				}
-
-				//PLATAFORMA CENTRO
-				var PlatCenter = scene.getObjectByName("PlatCentro");
-
-				if (PlatCenter.position.y <= -2) {
-					direccioncubo3 = 1;
-				}
-				if (PlatCenter.position.y >= 5) {
-					direccioncubo3 = 0;
-				}
-				if (direccioncubo3 == 0) {
-					PlatCenter.position.y -= 5 * deltaTime;
-					PlatCenter.box.update();
-				}
-				if (direccioncubo3 == 1) {
-					PlatCenter.position.y += 5 * deltaTime;
-					PlatCenter.box.update();
-				}
+					if (PlatCenter.position.y >= 5) {
+						direccioncubo3 = 0;
+					}
+					if (direccioncubo3 == 0) {
+						PlatCenter.position.y -= 5 * deltaTime;
+						PlatCenter.box.update();
+					}
+					if (direccioncubo3 == 1) {
+						PlatCenter.position.y += 5 * deltaTime;
+						PlatCenter.box.update();
+					}
 
 
-				//PLATAFORMA CENTRO ARRIBA
-				var PlatCenterA = scene.getObjectByName("PlatCentroArriba");
+					//PLATAFORMA CENTRO ARRIBA
+					var PlatCenterA = scene.getObjectByName("PlatCentroArriba");
 
-				if (PlatCenterA.position.y <= 8) {
-					direccioncubo4 = 1;
-				}
-				if (PlatCenterA.position.y >= 15) {
-					direccioncubo4 = 0;
-				}
-				if (direccioncubo4 == 0) {
-					PlatCenterA.position.y -= 5 * deltaTime;
-					PlatCenterA.box.update();
-				}
-				if (direccioncubo4 == 1) {
-					PlatCenterA.position.y += 5 * deltaTime;
-					PlatCenterA.box.update();
-				}
+					if (PlatCenterA.position.y <= 8) {
+						direccioncubo4 = 1;
+					}
+					if (PlatCenterA.position.y >= 15) {
+						direccioncubo4 = 0;
+					}
+					if (direccioncubo4 == 0) {
+						PlatCenterA.position.y -= 5 * deltaTime;
+						PlatCenterA.box.update();
+					}
+					if (direccioncubo4 == 1) {
+						PlatCenterA.position.y += 5 * deltaTime;
+						PlatCenterA.box.update();
+					}
 
 
 
 
-				//PLATAFORMA DERECHA
-				var PlatDer = scene.getObjectByName("PD");
+					//PLATAFORMA DERECHA
+					var PlatDer = scene.getObjectByName("PD");
 
-				if (PlatDer.position.x <= 7) {
-					direccioncubo2 = 1;
-				}
-				if (PlatDer.position.x >= 15) {
-					direccioncubo2 = 0;
-				}
-				if (direccioncubo2 == 0) {
-					PlatDer.position.x -= 7 * deltaTime;
-					PlatDer.box.update();
-				}
-				if (direccioncubo2 == 1) {
-					PlatDer.position.x += 7 * deltaTime;
-					PlatDer.box.update();
-				}
+					if (PlatDer.position.x <= 7) {
+						direccioncubo2 = 1;
+					}
+					if (PlatDer.position.x >= 15) {
+						direccioncubo2 = 0;
+					}
+					if (direccioncubo2 == 0) {
+						PlatDer.position.x -= 7 * deltaTime;
+						PlatDer.box.update();
+					}
+					if (direccioncubo2 == 1) {
+						PlatDer.position.x += 7 * deltaTime;
+						PlatDer.box.update();
+					}
 
-				//PLATAFORMA IZQUIERDA
-				var PlatIzq = scene.getObjectByName("PI");
+					//PLATAFORMA IZQUIERDA
+					var PlatIzq = scene.getObjectByName("PI");
 
-				if (PlatIzq.position.x >= -7) {
-					direccioncubo1 = 1;
-				}
-				if (PlatIzq.position.x <= -15) {
-					direccioncubo1 = 0;
-				}
-				if (direccioncubo1 == 0) {
-					PlatIzq.position.x -= -7 * deltaTime;
-					PlatIzq.box.update();
-				}
-				if (direccioncubo1 == 1) {
-					PlatIzq.position.x += -7 * deltaTime;
-					PlatIzq.box.update();
-				}
+					if (PlatIzq.position.x >= -7) {
+						direccioncubo1 = 1;
+					}
+					if (PlatIzq.position.x <= -15) {
+						direccioncubo1 = 0;
+					}
+					if (direccioncubo1 == 0) {
+						PlatIzq.position.x -= -7 * deltaTime;
+						PlatIzq.box.update();
+					}
+					if (direccioncubo1 == 1) {
+						PlatIzq.position.x += -7 * deltaTime;
+						PlatIzq.box.update();
+					}
 
-				if (player.isFalling == false && player.isJumping == false) {
-					player.translateZ(forward * deltaTime);
-				}
-				else {
-					player.translateZ(forward / 1.5 * deltaTime);
-				}
-
-				if (nPlayers == 2) {
-					if (player2.isFalling == false && player2.isJumping == false) {
-						player2.translateZ(forward2 * deltaTime);
+					if (player.isFalling == false && player.isJumping == false) {
+						player.translateZ(forward * deltaTime);
 					}
 					else {
-						player2.translateZ(forward2 / 1.5 * deltaTime);
-					}
-				}
-
-				camera.position.x = player.position.x;
-				camera.position.y = player.position.y;
-
-				for (var i = 0; i < players.length; i++) {
-					for (var j = 0; j < players[i].poses.length; j++) {
-						players[i].poses[j].position.x = players[i].position.x;
-						players[i].poses[j].position.y = players[i].position.y;
-						players[i].poses[j].rotation.y = players[i].rotation.y;
+						player.translateZ(forward / 1.5 * deltaTime);
 					}
 
-					if (players[i].isWalking == true && players[i].isJumping == false && players[i].isFalling == false) {
-						if (players[i].frames <= 1) {
-							players[i].visible = true;
-							players[i].poses[0].visible = false;
-							players[i].poses[1].visible = false;
-							players[i].frames++;
+					if (nPlayers == 2) {
+						if (player2.isFalling == false && player2.isJumping == false) {
+							player2.translateZ(forward2 * deltaTime);
 						}
 						else {
-							if (players[i].frames > 1 && players[i].frames <= 11) {
-								players[i].visible = false;
-								players[i].poses[0].visible = true;
-								players[i].frames++;
-							}
-							if (players[i].frames > 11 && players[i].frames <= 21) {
+							player2.translateZ(forward2 / 1.5 * deltaTime);
+						}
+					}
+
+					camera.position.x = player.position.x;
+					camera.position.y = player.position.y;
+
+					for(var i = 0; i < enemies.length; i++){
+						var col = moveEnemy(enemies[i]);
+						if(col==true){
+							scene.remove(enemies[i]);
+							enemies.splice(i,1);
+							i--;
+						}
+					}
+
+					for (var i = 0; i < players.length; i++) {
+						for (var j = 0; j < players[i].poses.length; j++) {
+							players[i].poses[j].position.x = players[i].position.x;
+							players[i].poses[j].position.y = players[i].position.y;
+							players[i].poses[j].rotation.y = players[i].rotation.y;
+						}
+
+						if (players[i].isWalking == true && players[i].isJumping == false && players[i].isFalling == false) {
+							if (players[i].frames <= 1) {
+								players[i].visible = true;
 								players[i].poses[0].visible = false;
-								players[i].poses[1].visible = true;
+								players[i].poses[1].visible = false;
 								players[i].frames++;
 							}
 							else {
-								if (players[i].frames > 21 && players[i].frames <= 31) {
-									players[i].poses[1].visible = false;
+								if (players[i].frames > 1 && players[i].frames <= 11) {
+									players[i].visible = false;
 									players[i].poses[0].visible = true;
 									players[i].frames++;
 								}
+								if (players[i].frames > 11 && players[i].frames <= 21) {
+									players[i].poses[0].visible = false;
+									players[i].poses[1].visible = true;
+									players[i].frames++;
+								}
 								else {
-									if (players[i].frames > 31 && players[i].frames <= 41) {
-										players[i].visible = true;
-										players[i].poses[0].visible = false;
+									if (players[i].frames > 21 && players[i].frames <= 31) {
+										players[i].poses[1].visible = false;
+										players[i].poses[0].visible = true;
 										players[i].frames++;
 									}
-									else if (players[i].frames > 41) {
-										players[i].frames = 0;
+									else {
+										if (players[i].frames > 31 && players[i].frames <= 41) {
+											players[i].visible = true;
+											players[i].poses[0].visible = false;
+											players[i].frames++;
+										}
+										else if (players[i].frames > 41) {
+											players[i].frames = 0;
+										}
 									}
 								}
 							}
 						}
-					}
-					if (players[i].isFalling || players[i].isJumping) {
-						players[i].visible = false;
-						players[i].poses[0].visible = false;
-						players[i].poses[1].visible = true;
-					}
-				}
+						if (players[i].isFalling || players[i].isJumping) {
+							players[i].visible = false;
+							players[i].poses[0].visible = false;
+							players[i].poses[1].visible = true;
+						}
 
+						if(i==0){
+								updateHP(players[i], "myBar")
+							}
+						else{
+							updateHP(players[i], "myBar2")
+							if(Math.sqrt((players[i-1].position.x-players[i].position.x)*(players[i-1].position.x-players[i].position.x)+(players[i-1].position.y-players[i].position.y)*(players[i-1].position.y-players[i].position.y))>=15){
+								players[i].position.x = players[i-1].position.x;
+								players[i].position.y = players[i-1].position.y;
+							}
+						}
+					}	
+				}
 			}
-		}
 			requestAnimationFrame(render);
 			renderer.render(scene, camera);
 

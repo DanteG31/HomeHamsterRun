@@ -35,7 +35,7 @@ function moveEnemy(enemy){
                 enemy.box.setFromObject(enemy);
                 for(j = 0; j < players.length; j++){
                     if(enemy.box.intersectsBox(players[j].box)){
-                        players[j].hp-=20;
+                        players[j].hp-=enemy.dmg;
                         sound();
                         coll = true;
                         break;
@@ -52,6 +52,11 @@ function moveEnemy(enemy){
 }
 
 function updateHP(player, bar){
-    document.getElementById(bar).style.width = player.hp.toString() + '%';
+    if(player.hp>=0){
+        document.getElementById(bar).style.width = player.hp.toString() + '%';
+    }
+    else{
+        document.getElementById(bar).style.width = '0%';
+    }
 }
 

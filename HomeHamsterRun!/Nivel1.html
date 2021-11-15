@@ -450,7 +450,7 @@
 				pelusaArriba.speed = 2 * difMultiplier;
 				pelusaArriba.maxmov = 3;
 				pelusaArriba.mov = 0;
-				pelusa.Arriba = 20 * difMultiplier;
+				pelusaArriba.dmg = 20 * difMultiplier;
 				enemies.push(pelusaArriba);
 
 				//PELUSA ARRIBA IZQUIERDA
@@ -462,8 +462,6 @@
 				pelusaAIzq.mobile = true;
 				pelusaAIzq.box = new THREE.Box3();
 				pelusaAIzq.box.setFromObject(pelusaAIzq);
-				pelusa.box = new THREE.Box3();
-				pelusa.box.setFromObject(pelusa);
 				pelusaAIzq.speed = 2 * difMultiplier;
 				pelusaAIzq.maxmov = 8;
 				pelusaAIzq.mov = 0;
