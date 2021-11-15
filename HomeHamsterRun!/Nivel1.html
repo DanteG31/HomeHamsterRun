@@ -35,6 +35,9 @@
 		var nPlayers = 2;
 		var players = [];
 		var enemies = [];
+		var bullets = [];
+		var win = false;
+		var lose = false;
 
 		$(document).ready(function () {
 
@@ -245,6 +248,11 @@
 				Collisions.push(box24);
 				CollisionsBox.push(box24.box);
 
+				var bullet = object.clone();
+				bullet.position.x = -40;
+				bullet.position.y = -40;
+				bullet.scale.set(1,0.3,0.4);
+				bullet.name = "bullet";
 
 				scene.add(object);
 				scene.add(box2);
@@ -270,6 +278,7 @@
 				scene.add(box22);
 				scene.add(box23);
 				scene.add(box24);
+				scene.add(bullet);
 
 				Collisions.push(object);
 				isWorldReady[0] = true;
@@ -293,6 +302,9 @@
 				player.isJumping = false;
 				player.isWalking = false;
 				player.isAlive = true;
+				player.canShoot = true;
+				player.shootCounter = 0;
+				player.maxShoot = 2;
 				player.fall = 0;
 				player.dir = 0;
 				player.visible = true;
@@ -349,6 +361,9 @@
 						player2.isJumping = false;
 						player2.isWalking = false;
 						player2.isAlive = true;
+						player2.canShoot = true;
+						player2.shootCounter = 0;
+						player2.maxShoot = 2;
 						player2.poses = [];
 						player2.frames = 0;
 						player2.fall = 0;
@@ -422,6 +437,7 @@
 				pelusa.maxmov = 8;
 				pelusa.mov = 0;
 				pelusa.dmg = 20 * difMultiplier;
+				pelusa.hp = 1;
 				enemies.push(pelusa);
 
 				//PELUSA DERECHA
@@ -436,6 +452,7 @@
 				pelusaDer.maxmov = 8;
 				pelusaDer.mov = 0;
 				pelusaDer.dmg = 20 * difMultiplier;
+				pelusaDer.hp = 1;
 				enemies.push(pelusaDer);
 
 				//PELUSA ARRIBA
@@ -451,6 +468,7 @@
 				pelusaArriba.maxmov = 3;
 				pelusaArriba.mov = 0;
 				pelusaArriba.dmg = 20 * difMultiplier;
+				pelusaArriba.hp = 1;
 				enemies.push(pelusaArriba);
 
 				//PELUSA ARRIBA IZQUIERDA
@@ -466,6 +484,7 @@
 				pelusaAIzq.maxmov = 8;
 				pelusaAIzq.mov = 0;
 				pelusaAIzq.dmg = 20 * difMultiplier;
+				pelusaAIzq.hp = 1;
 				enemies.push(pelusaAIzq);
 
 				//PELUSA ARRIBA DERECHA
@@ -481,6 +500,7 @@
 				pelusaADer.maxmov = 8;
 				pelusaADer.mov = 0;
 				pelusaADer.dmg = 20 * difMultiplier;
+				pelusaADer.hp = 1;
 				enemies.push(pelusaADer);
 
 
@@ -629,6 +649,8 @@
 					player2.box.setFromObject(player2);
 				}
 
+				var sampleBullet = scene.getObjectByName("bullet");
+
 				for (var j = 0; j < players.length; j++) {
 					for (var i = 0; i < CollisionsBox.length; i++) {
 						if (players[j].box.intersectsBox(CollisionsBox[i].box)) {
@@ -646,7 +668,7 @@
 					}
 				}
 
-				if (Pausa == false) {
+				if (Pausa == false && win == false && lose == false) {
 					if (keys["A"]) {
 						player.rotation.y = THREE.Math.degToRad(-90);
 						for (var i = 0; i < CollisionsBox.length; i++) {
@@ -694,6 +716,27 @@
 						player.visible = true;
 						players[0].poses[0].visible = false;
 						players[0].poses[1].visible = false;
+					}
+
+					if(keys["S"]&&player.canShoot==true){
+						var newBullet = sampleBullet.clone();
+						newBullet.rotation.y = player.rotation.y;
+						newBullet.position.set(player.position.x, player.position.y+0.5, player.position.z);
+						newBullet.max = player.maxShoot;
+						newBullet.duration = 0;
+						newBullet.box = new THREE.Box3();
+						newBullet.box.setFromObject(newBullet);
+						scene.add(newBullet);
+						bullets.push(newBullet);
+						player.canShoot=false;
+					}
+
+					if(player.canShoot==false){
+						player.shootCounter+=deltaTime;
+						if(player.shootCounter>=player.maxShoot){
+							player.canShoot=true;
+							player.shootCounter=0;
+						}
 					}
 
 					if (nPlayers == 2) {
@@ -745,6 +788,27 @@
 							player2.visible = true;
 							players[1].poses[0].visible = false;
 							players[1].poses[1].visible = false;
+						}
+
+						if(keys["K"]&&player2.canShoot==true){
+							var newBullet = sampleBullet.clone();
+							newBullet.rotation.y = player2.rotation.y;
+							newBullet.position.set(player2.position.x, player2.position.y+0.5, player2.position.z);
+							newBullet.max = player.maxShoot;
+							newBullet.duration = 0;
+							newBullet.box = new THREE.Box3();
+							newBullet.box.setFromObject(newBullet);
+							scene.add(newBullet);
+							bullets.push(newBullet);
+							player2.canShoot=false;
+						}
+
+						if(player2.canShoot==false){
+							player2.shootCounter+=deltaTime;
+							if(player2.shootCounter>=player2.maxShoot){
+								player2.canShoot=true;
+								player2.shootCounter=0;
+							}
 						}
 					}
 
@@ -904,6 +968,45 @@
 						}
 					}
 
+					for(var i = 0; i < bullets.length; i++){
+						var col = false;
+						if(bullets[i].duration <=bullets[i].max){
+							bullets[i].translateZ(velocidad * 2 * deltaTime);
+							bullets[i].duration+=deltaTime;
+							bullets[i].box.setFromObject(bullets[i]);
+							for(var j = 0; j < CollisionsBox.length; j++){
+								if(bullets[i].box.intersectsBox(CollisionsBox[j].box)){
+									scene.remove(bullets[i]);
+									bullets.splice(i,1);
+									i--;
+									col = true;
+									break;
+								}
+							}
+							if(col==false){
+								for(var j = 0; j < enemies.length; j++){
+									if(bullets[i].box.intersectsBox(enemies[j].box)){
+										scene.remove(bullets[i]);
+										bullets.splice(i,1);
+										i--;
+										col = true;
+										enemies[j].hp--;
+										if(enemies[j].hp<=0){
+											scene.remove(enemies[j]);
+											enemies.splice(j,1);
+										}
+										break;
+									}
+								}
+							}
+						}
+						else{
+							scene.remove(bullets[i]);
+							bullets.splice(i,1);
+							i--;
+						}
+					}
+
 					for (var i = 0; i < players.length; i++) {
 						for (var j = 0; j < players[i].poses.length; j++) {
 							players[i].poses[j].position.x = players[i].position.x;
@@ -966,15 +1069,34 @@
 						}
 					}
 
-				}
+					if(enemies.length<=0){
+						win = true;
+					}
 
+					for(var i = 0; i < players.length; i++){
+						if(players[i].hp<=0){
+							lose = true;
+							break;
+						}
+					}
+				}		
 
 			}
 
-
-			requestAnimationFrame(render);
-			renderer.render(scene, camera);
-
+			if(win==true){
+					//toDO Aqui va la pantalla de ganar
+					console.log("Ganaste");
+			}
+			else{
+				if(lose==true){
+					//toDO Aqui va la pantalla de perder
+					console.log("Perdiste");
+				}
+				else{
+					requestAnimationFrame(render);
+					renderer.render(scene, camera);
+				}
+			}
 		}
 
 		function onKeyDown(event) {
