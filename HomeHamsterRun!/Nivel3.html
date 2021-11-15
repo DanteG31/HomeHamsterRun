@@ -455,26 +455,56 @@
 			//TORTUGA
 			loadOBJWithMTL("assets/", "tortugabase.obj", "tortugabase.mtl", (tortuga) => {
 
-
-
 				tortuga.position.x = -5;
 				tortuga.position.y = 11;
 				tortuga.rotation.y = THREE.Math.degToRad(-90);
 				tortuga.scale.set(0.4, 0.4, 0.4);
+				tortuga.mobile = true;
+				tortuga.box = new THREE.Box3();
+				tortuga.box.setFromObject(tortuga);
+				tortuga.speed = 2 * difMultiplier;
+				tortuga.maxmov = 6;
+				tortuga.mov = 0;
+				tortuga.dmg = 30 * difMultiplier;
+				enemies.push(tortuga);
 
 				var tortuga2 = tortuga.clone();
 				tortuga2.position.x = 3;
 				tortuga2.position.y = 4.5;
+				tortuga2.mobile = true;
+				tortuga2.box = new THREE.Box3();
+				tortuga2.box.setFromObject(tortuga2);
+				tortuga2.speed = 2 * difMultiplier;
+				tortuga2.maxmov = 5;
+				tortuga2.mov = 0;
+				tortuga2.dmg = 30 * difMultiplier;
+				enemies.push(tortuga2);
 
 				var tortuga3 = tortuga.clone();
 				tortuga3.position.x = -14;
-				tortuga3.position.y = -2;
+				tortuga3.position.y = -1.1;
 				tortuga3.rotation.y = THREE.Math.degToRad(90);
+				tortuga3.mobile = true;
+				tortuga3.box = new THREE.Box3();
+				tortuga3.box.setFromObject(tortuga3);
+				tortuga3.speed = 2 * difMultiplier;
+				tortuga3.maxmov = 10;
+				tortuga3.mov = 0;
+				tortuga3.dmg = 30 * difMultiplier;
+				enemies.push(tortuga3);
 
 				var tortuga4 = tortuga.clone();
 				tortuga4.position.x = 14;
-				tortuga4.position.y = 0;
+				tortuga4.position.y = -0.8;
 				tortuga4.rotation.y = THREE.Math.degToRad(-90);
+				tortuga4.mobile = true;
+				tortuga4.box = new THREE.Box3();
+				tortuga4.box.setFromObject(tortuga4);
+				tortuga4.speed = 2 * difMultiplier;
+				tortuga4.maxmov = 6;
+				tortuga4.mov = 0;
+				tortuga4.dmg = 30 * difMultiplier;
+				enemies.push(tortuga4);
 
 				scene.add(tortuga);
 				scene.add(tortuga2);
