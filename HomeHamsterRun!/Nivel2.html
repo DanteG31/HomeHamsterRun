@@ -37,7 +37,10 @@
 		var nPlayers = 1;
 		var players = [];
 		var enemies = [];
+		var bullets = [];
 		var difMultiplier = 1;
+		var win = false;
+		var lose = false;
 
 		$(document).ready(function () {
 
@@ -149,20 +152,20 @@
 				box13.position.x = 0;
 				box13.position.y = -2;
 				box13.scale.set(5, 1, 1);
-				box13.box = new THREE.BoundingBoxHelper(box13, 0x00ffff);
-				box13.box.update();
+				box13.box = new THREE.Box3();
+				box13.box.setFromObject(box13);
 				Collisions.push(box13);
-				CollisionsBox.push(box13.box);
+				CollisionsBox.push(box13);
 				box13.name = "PlatCentro";
 				//PLATAFORMA IZQUIERDA 
 				var box14 = object.clone();
 				box14.position.x = 0;
 				box14.position.y = 8;
-				box14.box = new THREE.BoundingBoxHelper(box14, 0x00ffff);
-				box14.box.update();
+				box14.box = new THREE.Box3();
+				box14.box.setFromObject(box14);
 				Collisions.push(box14);
 				box14.scale.set(5, 1, 1);
-				CollisionsBox.push(box14.box);
+				CollisionsBox.push(box14);
 				box14.name = "PlatCentroArriba";
 
 				//ARRIBA ARRIBA IZQUIERDA
@@ -196,10 +199,10 @@
 				box18.position.x = 7;
 				box18.position.y = 7;
 				box18.scale.set(5, 1, 1);
-				box18.box = new THREE.BoundingBoxHelper(box18, 0x00ffff);
-				box18.box.update();
+				box18.box = new THREE.Box3();
+				box18.box.setFromObject(box18);
 				Collisions.push(box18);
-				CollisionsBox.push(box18.box);
+				CollisionsBox.push(box18);
 				box18.name = "PD";
 
 				//PLATAFORMA IZQUIERDA 
@@ -207,10 +210,10 @@
 				box19.position.x = -15;
 				box19.position.y = 7;
 				box19.scale.set(5, 1, 1);
-				box19.box = new THREE.BoundingBoxHelper(box19, 0x00ffff);
-				box19.box.update();
+				box19.box = new THREE.Box3();
+				box19.box.setFromObject(box19);
 				Collisions.push(box19);
-				CollisionsBox.push(box19.box);
+				CollisionsBox.push(box19);
 				box19.name = "PI";
 
 				//ARRIBA ARRIBA DERECHA
@@ -248,6 +251,11 @@
 				Collisions.push(box23);
 				CollisionsBox.push(box23.box);
 
+				var bullet = object.clone();
+				bullet.position.x = -40;
+				bullet.position.y = -40;
+				bullet.scale.set(1,0.3,0.4);
+				bullet.name = "bullet";
 
 
 				scene.add(object);
@@ -273,6 +281,7 @@
 				scene.add(box21);
 				scene.add(box22);
 				scene.add(box23);
+				scene.add(bullet);
 
 
 				Collisions.push(object);
@@ -296,6 +305,9 @@
 				player.isJumping = false;
 				player.isWalking = false;
 				player.isAlive = true;
+				player.canShoot = true;
+				player.shootCounter = 0;
+				player.maxShoot = 2;
 				player.hp = 100;
 				player.fall = 0;
 				player.dir = 0;
@@ -352,6 +364,9 @@
 						player2.isJumping = false;
 						player2.isWalking = false;
 						player2.isAlive = true;
+						player2.canShoot = true;
+						player2.shootCounter = 0;
+						player2.maxShoot = 2;
 						player2.hp = 100;
 						player2.poses = [];
 						player2.frames = 0;
@@ -420,7 +435,13 @@
 				Lizardon.position.y = 18.5;
 				Lizardon.scale.set(0.2, 0.3, 0.3);
 				Lizardon.rotation.y = THREE.Math.degToRad(-90);
+				Lizardon.box = new THREE.Box3();
+				Lizardon.box.setFromObject(Lizardon);
+				Lizardon.mobile = false;
+				Lizardon.hp = 5;
+				Lizardon.dmg = 100;
 				scene.add(Lizardon);
+				enemies.push(Lizardon);
 
 
 				isWorldReady[5] = true;
@@ -440,6 +461,7 @@
 				pelusa.maxmov = 8;
 				pelusa.mov = 0;
 				pelusa.dmg = 20 * difMultiplier;
+				pelusa.hp = 1;
 				enemies.push(pelusa);
 
 				//PELUSA DERECHA
@@ -454,13 +476,14 @@
 				pelusaDer.maxmov = 8;
 				pelusaDer.mov = 0;
 				pelusaDer.dmg = 20 * difMultiplier;
+				pelusaDer.hp = 1;
 				enemies.push(pelusaDer);
 
 				//PELUSA ARRIBA
 				var pelusaArriba = pelusa.clone();
 				pelusaArriba.position.x = 0;
-				pelusaArriba.position.y = 25;
-				pelusaArriba.rotation.y = THREE.Math.degToRad(0);
+				pelusaArriba.position.y = 20;
+				pelusaArriba.rotation.y = THREE.Math.degToRad(90);
 				pelusaArriba.rotation.x = THREE.Math.degToRad(30);
 				pelusaArriba.mobile = true;
 				pelusaArriba.box = new THREE.Box3();
@@ -469,6 +492,7 @@
 				pelusaArriba.maxmov = 3;
 				pelusaArriba.mov = 0;
 				pelusaArriba.dmg = 20 * difMultiplier;
+				pelusaArriba.hp = 1;
 				enemies.push(pelusaArriba);
 
 				//PELUSA ARRIBA IZQUIERDA
@@ -486,6 +510,7 @@
 				pelusaAIzq.maxmov = 8;
 				pelusaAIzq.mov = 0;
 				pelusaAIzq.dmg = 20 * difMultiplier;
+				pelusaAIzq.hp = 1;
 				enemies.push(pelusaAIzq);
 
 				//PELUSA ARRIBA DERECHA
@@ -500,6 +525,7 @@
 				pelusaADer.maxmov = 8;
 				pelusaADer.mov = 0;
 				pelusaADer.dmg = 20 * difMultiplier;
+				pelusaADer.hp = 1;
 				enemies.push(pelusaADer);
 
 				//PELUSA AARIBA ARRIBA IZQUIERDA
@@ -514,6 +540,7 @@
 				pelusaAIzq2.maxmov = 8;
 				pelusaAIzq2.mov = 0;
 				pelusaAIzq2.dmg = 20 * difMultiplier;
+				pelusaAIzq2.hp = 1;
 				enemies.push(pelusaAIzq2);
 
 				scene.add(pelusa);
@@ -654,6 +681,8 @@
 					player2.box.setFromObject(player2);
 				}
 
+				var sampleBullet = scene.getObjectByName("bullet");
+
 				for (var j = 0; j < players.length; j++) {
 					for (var i = 0; i < CollisionsBox.length; i++) {
 						if (players[j].box.intersectsBox(CollisionsBox[i].box)) {
@@ -670,7 +699,7 @@
 						}
 					}
 				}
-				if(Pausa == false){
+				if(Pausa == false && win == false && lose == false){
 					if (keys["A"]) {
 						player.rotation.y = THREE.Math.degToRad(-90);
 						for (var i = 0; i < CollisionsBox.length; i++) {
@@ -718,6 +747,27 @@
 						player.visible = true;
 						players[0].poses[0].visible = false;
 						players[0].poses[1].visible = false;
+					}
+
+					if(keys["S"]&&player.canShoot==true){
+						var newBullet = sampleBullet.clone();
+						newBullet.rotation.y = player.rotation.y;
+						newBullet.position.set(player.position.x, player.position.y+0.5, player.position.z);
+						newBullet.max = player.maxShoot;
+						newBullet.duration = 0;
+						newBullet.box = new THREE.Box3();
+						newBullet.box.setFromObject(newBullet);
+						scene.add(newBullet);
+						bullets.push(newBullet);
+						player.canShoot=false;
+					}
+
+					if(player.canShoot==false){
+						player.shootCounter+=deltaTime;
+						if(player.shootCounter>=player.maxShoot){
+							player.canShoot=true;
+							player.shootCounter=0;
+						}
 					}
 
 					if (nPlayers == 2) {
@@ -769,6 +819,27 @@
 							player2.visible = true;
 							players[1].poses[0].visible = false;
 							players[1].poses[1].visible = false;
+						}
+
+						if(keys["K"]&&player2.canShoot==true){
+							var newBullet = sampleBullet.clone();
+							newBullet.rotation.y = player2.rotation.y;
+							newBullet.position.set(player2.position.x, player2.position.y+0.5, player2.position.z);
+							newBullet.max = player.maxShoot;
+							newBullet.duration = 0;
+							newBullet.box = new THREE.Box3();
+							newBullet.box.setFromObject(newBullet);
+							scene.add(newBullet);
+							bullets.push(newBullet);
+							player2.canShoot=false;
+						}
+
+						if(player2.canShoot==false){
+							player2.shootCounter+=deltaTime;
+							if(player2.shootCounter>=player2.maxShoot){
+								player2.canShoot=true;
+								player2.shootCounter=0;
+							}
 						}
 					}
 
@@ -875,11 +946,11 @@
 					}
 					if (direccioncubo3 == 0) {
 						PlatCenter.position.y -= 5 * deltaTime;
-						PlatCenter.box.update();
+						PlatCenter.box.setFromObject(PlatCenter);
 					}
 					if (direccioncubo3 == 1) {
 						PlatCenter.position.y += 5 * deltaTime;
-						PlatCenter.box.update();
+						PlatCenter.box.setFromObject(PlatCenter);
 					}
 
 
@@ -894,11 +965,11 @@
 					}
 					if (direccioncubo4 == 0) {
 						PlatCenterA.position.y -= 5 * deltaTime;
-						PlatCenterA.box.update();
+						PlatCenterA.box.setFromObject(PlatCenterA);
 					}
 					if (direccioncubo4 == 1) {
 						PlatCenterA.position.y += 5 * deltaTime;
-						PlatCenterA.box.update();
+						PlatCenterA.box.setFromObject(PlatCenterA);
 					}
 
 
@@ -915,11 +986,11 @@
 					}
 					if (direccioncubo2 == 0) {
 						PlatDer.position.x -= 7 * deltaTime;
-						PlatDer.box.update();
+						PlatDer.box.setFromObject(PlatDer);
 					}
 					if (direccioncubo2 == 1) {
 						PlatDer.position.x += 7 * deltaTime;
-						PlatDer.box.update();
+						PlatDer.box.setFromObject(PlatDer);
 					}
 
 					//PLATAFORMA IZQUIERDA
@@ -933,11 +1004,11 @@
 					}
 					if (direccioncubo1 == 0) {
 						PlatIzq.position.x -= -7 * deltaTime;
-						PlatIzq.box.update();
+						PlatIzq.box.setFromObject(PlatIzq);
 					}
 					if (direccioncubo1 == 1) {
 						PlatIzq.position.x += -7 * deltaTime;
-						PlatIzq.box.update();
+						PlatIzq.box.setFromObject(PlatIzq);
 					}
 
 					if (player.isFalling == false && player.isJumping == false) {
@@ -964,6 +1035,45 @@
 						if(col==true){
 							scene.remove(enemies[i]);
 							enemies.splice(i,1);
+							i--;
+						}
+					}
+
+					for(var i = 0; i < bullets.length; i++){
+						var col = false;
+						if(bullets[i].duration <=bullets[i].max){
+							bullets[i].translateZ(velocidad * 2 * deltaTime);
+							bullets[i].duration+=deltaTime;
+							bullets[i].box.setFromObject(bullets[i]);
+							for(var j = 0; j < CollisionsBox.length; j++){
+								if(bullets[i].box.intersectsBox(CollisionsBox[j].box)){
+									scene.remove(bullets[i]);
+									bullets.splice(i,1);
+									i--;
+									col = true;
+									break;
+								}
+							}
+							if(col==false){
+								for(var j = 0; j < enemies.length; j++){
+									if(bullets[i].box.intersectsBox(enemies[j].box)){
+										scene.remove(bullets[i]);
+										bullets.splice(i,1);
+										i--;
+										col = true;
+										enemies[j].hp--;
+										if(enemies[j].hp<=0){
+											scene.remove(enemies[j]);
+											enemies.splice(j,1);
+										}
+										break;
+									}
+								}
+							}
+						}
+						else{
+							scene.remove(bullets[i]);
+							bullets.splice(i,1);
 							i--;
 						}
 					}
@@ -1028,11 +1138,35 @@
 								players[i].position.y = players[i-1].position.y;
 							}
 						}
-					}	
+					}
+					
+					if(enemies.length<=0){
+						win = true;
+					}
+
+					for(var i = 0; i < players.length; i++){
+						if(players[i].hp<=0){
+							lose = true;
+							break;
+						}
+					}
 				}
 			}
-			requestAnimationFrame(render);
-			renderer.render(scene, camera);
+
+			if(win==true){
+					//toDO Aqui va la pantalla de ganar
+					console.log("Ganaste");
+			}
+			else{
+				if(lose==true){
+					//toDO Aqui va la pantalla de perder
+					console.log("Perdiste");
+				}
+				else{
+					requestAnimationFrame(render);
+					renderer.render(scene, camera);
+				}
+			}
 
 		}
 

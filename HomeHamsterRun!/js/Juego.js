@@ -48,6 +48,16 @@ function moveEnemy(enemy){
 
         }
     }
+    else{
+        for(j = 0; j < players.length; j++){
+            if(enemy.box.intersectsBox(players[j].box)){
+                players[j].hp-=enemy.dmg;
+                sound();
+                coll = true;
+                break;
+            }
+        }
+    }
     return coll;
 }
 
