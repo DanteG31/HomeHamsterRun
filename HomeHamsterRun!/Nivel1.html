@@ -30,9 +30,11 @@
 		var jumpStrength = 14;
 		var direccioncubo1;
 		var direccioncubo2;
+		var difMultiplier = 2;
 		var isWorldReady = [false, false, false, false, false, false];
 		var nPlayers = 2;
 		var players = [];
+		var enemies = [];
 
 		$(document).ready(function () {
 
@@ -286,9 +288,11 @@
 				player.box = new THREE.Box3();
 				player.box.setFromObject(player);
 				gravityAff.push(player);
+				player.hp=100;
 				player.isFalling = false;
 				player.isJumping = false;
 				player.isWalking = false;
+				player.isAlive = true;
 				player.fall = 0;
 				player.dir = 0;
 				player.visible = true;
@@ -340,8 +344,11 @@
 						player2.box = new THREE.Box3();
 						player2.box.setFromObject(player2);
 						gravityAff.push(player2);
+						player2.hp = 100;
 						player2.isFalling = false;
 						player2.isJumping = false;
+						player2.isWalking = false;
+						player2.isAlive = true;
 						player2.poses = [];
 						player2.frames = 0;
 						player2.fall = 0;
@@ -408,19 +415,43 @@
 				pelusa.position.y = -3;
 				pelusa.scale.set(0.4, 0.4, 0.4);
 				pelusa.rotation.y = THREE.Math.degToRad(90);
+				pelusa.mobile = true;
+				pelusa.box = new THREE.Box3();
+				pelusa.box.setFromObject(pelusa);
+				pelusa.speed = 2 * difMultiplier;
+				pelusa.maxmov = 8;
+				pelusa.mov = 0;
+				pelusa.dmg = 20 * difMultiplier;
+				enemies.push(pelusa);
 
 				//PELUSA DERECHA
 				var pelusaDer = pelusa.clone();
 				pelusaDer.position.x = 15;
 				pelusaDer.position.y = -3;
 				pelusaDer.rotation.y = THREE.Math.degToRad(-90);
+				pelusaDer.mobile = true;
+				pelusaDer.box = new THREE.Box3();
+				pelusaDer.box.setFromObject(pelusaDer);
+				pelusaDer.speed = 2 * difMultiplier;
+				pelusaDer.maxmov = 8;
+				pelusaDer.mov = 0;
+				pelusaDer.dmg = 20 * difMultiplier;
+				enemies.push(pelusaDer);
 
 				//PELUSA ARRIBA
 				var pelusaArriba = pelusa.clone();
 				pelusaArriba.position.x = 0;
-				pelusaArriba.position.y = 1;
+				pelusaArriba.position.y = 2.5;
 				pelusaArriba.rotation.y = THREE.Math.degToRad(0);
-				pelusaArriba.rotation.x = THREE.Math.degToRad(30);
+				pelusaArriba.rotation.x = THREE.Math.degToRad(90);
+				pelusaArriba.mobile = true;
+				pelusaArriba.box = new THREE.Box3();
+				pelusaArriba.box.setFromObject(pelusaArriba);
+				pelusaArriba.speed = 2 * difMultiplier;
+				pelusaArriba.maxmov = 3;
+				pelusaArriba.mov = 0;
+				pelusa.Arriba = 20 * difMultiplier;
+				enemies.push(pelusaArriba);
 
 				//PELUSA ARRIBA IZQUIERDA
 				var pelusaAIzq = pelusa.clone();
@@ -428,6 +459,16 @@
 				pelusaAIzq.position.y = 2;
 				pelusaAIzq.rotation.y = THREE.Math.degToRad(90);
 				pelusaAIzq.rotation.x = THREE.Math.degToRad(40);
+				pelusaAIzq.mobile = true;
+				pelusaAIzq.box = new THREE.Box3();
+				pelusaAIzq.box.setFromObject(pelusaAIzq);
+				pelusa.box = new THREE.Box3();
+				pelusa.box.setFromObject(pelusa);
+				pelusaAIzq.speed = 2 * difMultiplier;
+				pelusaAIzq.maxmov = 8;
+				pelusaAIzq.mov = 0;
+				pelusaAIzq.dmg = 20 * difMultiplier;
+				enemies.push(pelusaAIzq);
 
 				//PELUSA ARRIBA DERECHA
 				var pelusaADer = pelusa.clone();
@@ -435,7 +476,14 @@
 				pelusaADer.position.y = 2;
 				pelusaADer.rotation.y = THREE.Math.degToRad(-90);
 				pelusaADer.rotation.x = THREE.Math.degToRad(40);
-
+				pelusaADer.mobile = true;
+				pelusaADer.box = new THREE.Box3();
+				pelusaADer.box.setFromObject(pelusaADer);
+				pelusaADer.speed = 2 * difMultiplier;
+				pelusaADer.maxmov = 8;
+				pelusaADer.mov = 0;
+				pelusaADer.dmg = 20 * difMultiplier;
+				enemies.push(pelusaADer);
 
 
 
@@ -599,6 +647,7 @@
 						}
 					}
 				}
+
 				if (Pausa == false) {
 					if (keys["A"]) {
 						player.rotation.y = THREE.Math.degToRad(-90);
@@ -847,6 +896,15 @@
 
 					camera.position.x = player.position.x;
 					camera.position.y = player.position.y;
+					
+					for(var i = 0; i < enemies.length; i++){
+						var col = moveEnemy(enemies[i]);
+						if(col==true){
+							scene.remove(enemies[i]);
+							enemies.splice(i,1);
+							i--;
+						}
+					}
 
 					for (var i = 0; i < players.length; i++) {
 						for (var j = 0; j < players[i].poses.length; j++) {
@@ -897,6 +955,17 @@
 							players[i].poses[0].visible = false;
 							players[i].poses[1].visible = true;
 						}
+
+						if(i==0){
+							updateHP(players[i], "myBar")
+						}
+						else{
+							updateHP(players[i], "myBar2")
+							if(Math.sqrt((players[i-1].position.x-players[i].position.x)*(players[i-1].position.x-players[i].position.x)+(players[i-1].position.y-players[i].position.y)*(players[i-1].position.y-players[i].position.y))>=15){
+								players[i].position.x = players[i-1].position.x;
+								players[i].position.y = players[i-1].position.y;
+							}
+						}
 					}
 
 				}
@@ -931,6 +1000,8 @@
 
 			});
 		}
+
+		
 	
 	</script>
 	   <script>

@@ -25,3 +25,33 @@ function play() {
         Musicplay = false;
     }
 }
+
+function moveEnemy(enemy){
+    var coll = false;
+    if(enemy.mobile == true){
+        if(enemy.mov < enemy.maxmov){
+                enemy.translateZ(enemy.speed * deltaTime);
+                enemy.mov += enemy.speed * deltaTime;
+                enemy.box.setFromObject(enemy);
+                for(j = 0; j < players.length; j++){
+                    if(enemy.box.intersectsBox(players[j].box)){
+                        players[j].hp-=20;
+                        sound();
+                        coll = true;
+                        break;
+                    }
+                }
+        }
+        else{
+                enemy.rotateY(THREE.Math.degToRad(180));
+                enemy.mov = 0;
+
+        }
+    }
+    return coll;
+}
+
+function updateHP(player, bar){
+    document.getElementById(bar).style.width = player.hp.toString() + '%';
+}
+
